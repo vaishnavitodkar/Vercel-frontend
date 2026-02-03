@@ -2,7 +2,6 @@ import React from "react";
 import { NavLink, Link } from "react-router-dom";
 import { useAuth } from "../../context/auth";
 import { FaShoppingBag } from "react-icons/fa";
-import { AiOutlineUser } from "react-icons/ai";
 import { FaUserAlt } from "react-icons/fa";
 import { toast } from "react-hot-toast";
 import SearchInput from "../Form/SearchInput";

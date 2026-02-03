@@ -32,7 +32,7 @@ import { BACKEND_URL } from "../../config";
 
 export default function PrivateRoute() {
   const [ok, setOk] = useState(false);
-  const [auth, setAuth] = useAuth();
+  const [auth] = useAuth();
 
   useEffect(() => {
     const authCheck = async () => {

@@ -61,30 +61,33 @@ const UpdateProduct = () => {
 
   //create product function
   const handleUpdate = async (e) => {
-    e.preventDefault();
-    try {
-      const productData = new FormData();
-      productData.append("name", name);
-      productData.append("description", description);
-      productData.append("price", price);
-      productData.append("quantity", quantity);
-      photo && productData.append("photo", photo);
-      productData.append("category", category);
-      const { data } = axios.put(
-        `/api/v1/product/update-product/${id}`,
-        productData
-      );
-      if (data?.success) {
-        toast.error(data?.message);
-      } else {
-        toast.success("Product Updated Successfully");
-        navigate("/dashboard/admin/products");
-      }
-    } catch (error) {
-      console.log(error);
-      toast.error("something went wrong");
+  e.preventDefault();
+  try {
+    const productData = new FormData();
+    productData.append("name", name);
+    productData.append("description", description);
+    productData.append("price", price);
+    productData.append("quantity", quantity);
+    photo && productData.append("photo", photo);
+    productData.append("category", category);
+
+    const { data } = await axios.put(
+      `/api/v1/product/update-product/${id}`,
+      productData
+    );
+
+    if (data?.success) {
+      toast.error(data?.message);
+    } else {
+      toast.success("Product Updated Successfully");
+      navigate("/dashboard/admin/products");
     }
-  };
+  } catch (error) {
+    console.log(error);
+    toast.error("something went wrong");
+  }
+};
+
 
   //delete a product
   const handleDelete = async () => {
@@ -94,6 +97,7 @@ const UpdateProduct = () => {
       const { data } = await axios.delete(
         `/api/v1/product/delete-product/${id}`
       );
+      if (data?.success) { toast.success("Product Deleted Successfully"); navigate("/dashboard/admin/products"); } else { toast.error(data?.message || "Failed to delete product"); }
       toast.success("Product DEleted Succfully");
       navigate("/dashboard/admin/products");
     } catch (error) {
