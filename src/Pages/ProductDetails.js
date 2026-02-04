@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Layout from "./../components/Layout/Layout";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
@@ -10,12 +10,8 @@ const ProductDetails = () => {
   const [product, setProduct] = useState({});
   const [relatedProducts, setRelatedProducts] = useState([]);
 
-  //initalp details
-  useEffect(() => {
-    if (params?.slug) getProduct();
-  }, [params?.slug]);
-  //getProduct
-  const getProduct = async () => {
+  // ✅ Wrap getProduct in useCallback
+  const getProduct = useCallback(async () => {
     try {
       const { data } = await axios.get(
         `/api/v1/product/get-product/${params.slug}`
@@ -25,8 +21,8 @@ const ProductDetails = () => {
     } catch (error) {
       console.log(error);
     }
-  };
-  //get similar product
+  }, [params.slug]);
+
   const getSimilarProduct = async (pid, cid) => {
     try {
       const { data } = await axios.get(
@@ -37,6 +33,11 @@ const ProductDetails = () => {
       console.log(error);
     }
   };
+
+  useEffect(() => {
+    if (params?.slug) getProduct();
+  }, [params?.slug, getProduct]); // ✅ dependency array fixed
+
   return (
     <Layout>
       <div className="row container product-details">
@@ -62,7 +63,7 @@ const ProductDetails = () => {
             })}
           </h6>
           <h6>Category : {product?.category?.name}</h6>
-          <button class="btn btn-secondary ms-1">ADD TO CART</button>
+          <button className="btn btn-secondary ms-1">ADD TO CART</button>
         </div>
       </div>
       <hr />
@@ -99,19 +100,6 @@ const ProductDetails = () => {
                   >
                     More Details
                   </button>
-                  {/* <button
-                  className="btn btn-dark ms-1"
-                  onClick={() => {
-                    setCart([...cart, p]);
-                    localStorage.setItem(
-                      "cart",
-                      JSON.stringify([...cart, p])
-                    );
-                    toast.success("Item Added to cart");
-                  }}
-                >
-                  ADD TO CART
-                </button> */}
                 </div>
               </div>
             </div>

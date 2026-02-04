@@ -117,15 +117,14 @@
 // };
 
 // export default AdminOrders;
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import AdminMenu from "../../components/Layout/AdminMenu";
 import Layout from "../../components/Layout/Layout";
 import { useAuth } from "../../context/auth";
 import moment from "moment";
 import { Select } from "antd";
-import { BACKEND_URL } from "../../config";  // ✅ import backend URL
+import { BACKEND_URL } from "../../config";  
 
 const { Option } = Select;
 
@@ -134,42 +133,42 @@ const AdminOrders = () => {
     "Not Process",
     "Processing",
     "Shipped",
-    "deliverd",
-    "cancel",
+    "Delivered",
+    "Cancelled",
   ]);
-  // const [changeStatus, setCHangeStatus] = useState("");
   const [orders, setOrders] = useState([]);
   const [auth] = useAuth();
 
-  const getOrders = async () => {
+  // ✅ useCallback to avoid ESLint dependency warning
+  const getOrders = useCallback(async () => {
     try {
       const { data } = await axios.get(`${BACKEND_URL}/api/v1/auth/all-orders`, {
         headers: {
-          Authorization: auth?.token, // if backend requires token
+          Authorization: auth?.token,
         },
       });
       setOrders(data);
     } catch (error) {
       console.log(error);
     }
-  };
+  }, [auth?.token]);
 
   useEffect(() => {
     if (auth?.token) getOrders();
-  }, [auth?.token]);
+  }, [auth?.token, getOrders]); // ✅ dependency array fixed
 
   const handleChange = async (orderId, value) => {
     try {
-      const { data } = await axios.put(
+      await axios.put(
         `${BACKEND_URL}/api/v1/auth/order-status/${orderId}`,
         { status: value },
         {
           headers: {
-            Authorization: auth?.token, // if backend requires token
+            Authorization: auth?.token,
           },
         }
       );
-      getOrders();
+      getOrders(); // 
     } catch (error) {
       console.log(error);
     }
@@ -183,66 +182,64 @@ const AdminOrders = () => {
         </div>
         <div className="col-md-9">
           <h1 className="text-center">All Orders</h1>
-          {orders?.map((o, i) => {
-            return (
-              <div className="border shadow" key={o._id}>
-                <table className="table">
-                  <thead>
-                    <tr>
-                      <th scope="col">#</th>
-                      <th scope="col">Status</th>
-                      <th scope="col">Buyer</th>
-                      <th scope="col">Date</th>
-                      <th scope="col">Payment</th>
-                      <th scope="col">Quantity</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>{i + 1}</td>
-                      <td>
-                        <Select
-                          bordered={false}
-                          onChange={(value) => handleChange(o._id, value)}
-                          defaultValue={o?.status}
-                        >
-                          {status.map((s, idx) => (
-                            <Option key={idx} value={s}>
-                              {s}
-                            </Option>
-                          ))}
-                        </Select>
-                      </td>
-                      <td>{o?.buyer?.name}</td>
-                      <td>{moment(o?.createAt).fromNow()}</td>
-                      <td>{o?.payment.success ? "Success" : "Failed"}</td>
-                      <td>{o?.products?.length}</td>
-                    </tr>
-                  </tbody>
-                </table>
-                <div className="container">
-                  {o?.products?.map((p) => (
-                    <div className="row mb-2 p-3 card flex-row" key={p._id}>
-                      <div className="col-md-4">
-                        <img
-                          src={`${BACKEND_URL}/api/v1/product/product-photo/${p._id}`} // ✅ fixed
-                          className="card-img-top"
-                          alt={p.name}
-                          width="100px"
-                          height={"100px"}
-                        />
-                      </div>
-                      <div className="col-md-8">
-                        <p>{p.name}</p>
-                        <p>{p.description.substring(0, 30)}</p>
-                        <p>Price : {p.price}</p>
-                      </div>
+          {orders?.map((o, i) => (
+            <div className="border shadow" key={o._id}>
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Buyer</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Payment</th>
+                    <th scope="col">Quantity</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>{i + 1}</td>
+                    <td>
+                      <Select
+                        bordered={false}
+                        onChange={(value) => handleChange(o._id, value)}
+                        defaultValue={o?.status}
+                      >
+                        {status.map((s, idx) => (
+                          <Option key={idx} value={s}>
+                            {s}
+                          </Option>
+                        ))}
+                      </Select>
+                    </td>
+                    <td>{o?.buyer?.name}</td>
+                    <td>{moment(o?.createdAt).fromNow()}</td>
+                    <td>{o?.payment.success ? "Success" : "Failed"}</td>
+                    <td>{o?.products?.length}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div className="container">
+                {o?.products?.map((p) => (
+                  <div className="row mb-2 p-3 card flex-row" key={p._id}>
+                    <div className="col-md-4">
+                      <img
+                        src={`${BACKEND_URL}/api/v1/product/product-photo/${p._id}`}
+                        className="card-img-top"
+                        alt={p.name}
+                        width="100px"
+                        height="100px"
+                      />
                     </div>
-                  ))}
-                </div>
+                    <div className="col-md-8">
+                      <p>{p.name}</p>
+                      <p>{p.description.substring(0, 30)}</p>
+                      <p>Price : {p.price}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       </div>
     </Layout>
@@ -250,3 +247,4 @@ const AdminOrders = () => {
 };
 
 export default AdminOrders;
+
