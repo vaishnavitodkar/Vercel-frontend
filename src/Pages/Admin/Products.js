@@ -1,35 +1,43 @@
 import React, { useState, useEffect } from "react";
 import AdminMenu from "../../components/Layout/AdminMenu";
 import Layout from "./../../components/Layout/Layout";
-import axios from "axios";
+import api from "../../api/axios"; // ✅ centralized axios
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
+
 const Products = () => {
   const [products, setProducts] = useState([]);
 
-  //getall products
+  // GET ALL PRODUCTS
   const getAllProducts = async () => {
     try {
-      const { data } = await axios.get("/api/v1/product/get-product");
-      setProducts(data.products);
+      const { data } = await api.get(
+        "/api/v1/product/get-product"
+      );
+
+      if (data?.success) {
+        setProducts(data.products);
+      }
     } catch (error) {
       console.log(error);
-      toast.error("Someething Went Wrong");
+      toast.error("Something went wrong while fetching products");
     }
   };
 
-  //lifecycle method
   useEffect(() => {
     getAllProducts();
   }, []);
+
   return (
-    <Layout>
+    <Layout title="Dashboard - Products">
       <div className="row dashboard">
         <div className="col-md-3 p-5">
           <AdminMenu />
         </div>
-        <div className="col-md-9 ">
+
+        <div className="col-md-9">
           <h1 className="text-center">All Products List</h1>
+
           <div className="d-flex flex-wrap">
             {products?.map((p) => (
               <Link
@@ -39,13 +47,16 @@ const Products = () => {
               >
                 <div className="card m-2" style={{ width: "18rem" }}>
                   <img
-                    src={`/api/v1/product/product-photo/${p._id}`}
+                    src={`${process.env.REACT_APP_BACKEND_URL || ""}/api/v1/product/product-photo/${p._id}`}
                     className="card-img-top"
                     alt={p.name}
                   />
+
                   <div className="card-body">
                     <h5 className="card-title">{p.name}</h5>
-                    <p className="card-text">{p.description}</p>
+                    <p className="card-text">
+                      {p.description.substring(0, 60)}...
+                    </p>
                   </div>
                 </div>
               </Link>
